@@ -690,6 +690,7 @@ void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *r
 #endif
 	while (reception_in_progress == 1) {}
 	extract_ddr_words(rx_data, rx_data_A, rx_data_B);
+	int32_t stall = 0;
 }
 
 

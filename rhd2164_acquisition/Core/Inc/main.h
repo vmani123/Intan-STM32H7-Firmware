@@ -81,8 +81,6 @@ void Error_Handler(void);
 #define RMII_TXD1_GPIO_Port GPIOB
 #define LED_RED_Pin GPIO_PIN_14
 #define LED_RED_GPIO_Port GPIOB
-#define STLK_VCP_RX_Pin GPIO_PIN_8
-#define STLK_VCP_RX_GPIO_Port GPIOD
 #define Interrupt_Monitor_Pin GPIO_PIN_9
 #define Interrupt_Monitor_GPIO_Port GPIOD
 #define USB_FS_PWR_EN_Pin GPIO_PIN_10
@@ -105,12 +103,12 @@ void Error_Handler(void);
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin GPIO_PIN_14
 #define SWCLK_GPIO_Port GPIOA
+#define STLK_VCP_RX_Pin GPIO_PIN_10
+#define STLK_VCP_RX_GPIO_Port GPIOC
 #define RMII_TX_EN_Pin GPIO_PIN_11
 #define RMII_TX_EN_GPIO_Port GPIOG
 #define RMII_TXD0_Pin GPIO_PIN_13
 #define RMII_TXD0_GPIO_Port GPIOG
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
 #define ErrorCode_Bit_3_Pin GPIO_PIN_0
 #define ErrorCode_Bit_3_GPIO_Port GPIOE
 #define LED_YELLOW_Pin GPIO_PIN_1

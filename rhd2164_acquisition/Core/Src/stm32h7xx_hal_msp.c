@@ -158,11 +158,10 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
     /**SPI3 GPIO Configuration
     PA4     ------> SPI3_NSS
     PB2     ------> SPI3_MOSI
-    PC10     ------> SPI3_SCK
+    PB3(JTDO/TRACESWO)     ------> SPI3_SCK
     */
     GPIO_InitStruct.Pin = GPIO_PIN_4;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -178,12 +177,12 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     GPIO_InitStruct.Alternate = GPIO_AF7_SPI3;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_10;
+    GPIO_InitStruct.Pin = GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* SPI3 DMA Init */
     /* SPI3_TX Init */
@@ -259,13 +258,11 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
     /**SPI3 GPIO Configuration
     PA4     ------> SPI3_NSS
     PB2     ------> SPI3_MOSI
-    PC10     ------> SPI3_SCK
+    PB3(JTDO/TRACESWO)     ------> SPI3_SCK
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4);
 
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_2);
-
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_10);
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_2|GPIO_PIN_3);
 
     /* SPI3 DMA DeInit */
     HAL_DMA_DeInit(hspi->hdmatx);
@@ -536,10 +533,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     __HAL_RCC_USART3_CLK_ENABLE();
 
     __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOD_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     /**USART3 GPIO Configuration
     PB11     ------> USART3_RX
-    PD8     ------> USART3_TX
+    PC10     ------> USART3_TX
     */
     GPIO_InitStruct.Pin = GPIO_PIN_11;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -603,7 +600,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
     /**USART3 GPIO Configuration
     PB11     ------> USART3_RX
-    PD8     ------> USART3_TX
+    PC10     ------> USART3_TX
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_11);
 

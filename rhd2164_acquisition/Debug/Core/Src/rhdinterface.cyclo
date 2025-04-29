@@ -23,6 +23,6 @@
 ../Core/Src/rhdinterface.c:615:5:create_command_list_zcheck_DAC	11
 ../Core/Src/rhdinterface.c:661:6:send_spi_command	1
 ../Core/Src/rhdinterface.c:672:6:send_receive_spi_command	4
-../Core/Src/rhdinterface.c:698:6:HAL_SPI_RxCpltCallback	2
-../Core/Src/rhdinterface.c:707:6:HAL_SPI_ErrorCallback	1
-../Core/Src/rhdinterface.c:714:6:HAL_UART_TxCpltCallback	1
+../Core/Src/rhdinterface.c:699:6:HAL_SPI_RxCpltCallback	2
+../Core/Src/rhdinterface.c:708:6:HAL_SPI_ErrorCallback	1
+../Core/Src/rhdinterface.c:715:6:HAL_UART_TxCpltCallback	1
