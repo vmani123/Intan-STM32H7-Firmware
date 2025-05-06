@@ -39,7 +39,7 @@
 // If acquiring a short period of data, then exiting and transmitting data
 // offline is desired, leave this uncommented.
 // If instead transmitting data in real-time is desired, leave this commented.
-#define OFFLINE_TRANSFER
+//#define OFFLINE_TRANSFER
 
 // Error detect GPIO, by default used to illuminate red LED
 // when an error of any kind is detected.

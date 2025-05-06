@@ -1,6 +1,6 @@
 ../Core/Src/userfunctions.c:40:5:loop_escape	4	static
-../Core/Src/userfunctions.c:53:6:write_data_to_memory	24	static
-../Core/Src/userfunctions.c:77:6:transmit_data_realtime	4	static
+../Core/Src/userfunctions.c:53:6:write_data_to_memory	4	static
+../Core/Src/userfunctions.c:77:6:transmit_data_realtime	16	static
 ../Core/Src/userfunctions.c:110:6:transmit_data_offline	32	static
 ../Core/Src/userfunctions.c:152:6:configure_registers	16	static
 ../Core/Src/userfunctions.c:175:6:configure_convert_commands	8	static
