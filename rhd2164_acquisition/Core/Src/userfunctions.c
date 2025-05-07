@@ -34,6 +34,7 @@
 #include <math.h>
 
 uint16_t samples[2 * NUM_SAMPLED_CHANNELS];
+static uint16_t counter = 0;
 
 // Specify condition that should result in the main while loop ending.
 // By default, escape once 1 second of data has been gathered.
@@ -101,6 +102,23 @@ void transmit_data_realtime()
 				&samples[i],
 				&samples[i + NUM_SAMPLED_CHANNELS]);
 	}
+
+	counter++;
+
+	if(counter>=2000){
+		samples[0] = 1000;
+		samples[1] = 2000;
+		samples[2] = 3000;
+		samples[3] = 4000;
+
+		if(counter==2500)
+		{
+			counter = 0;
+		}
+
+	}
+
+
 	transmit_dma_to_usart(samples, NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t));
 #endif
 }

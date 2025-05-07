@@ -1,8 +1,8 @@
-../Core/Src/userfunctions.c:40:5:loop_escape	4	static
-../Core/Src/userfunctions.c:53:6:write_data_to_memory	4	static
-../Core/Src/userfunctions.c:77:6:transmit_data_realtime	16	static
-../Core/Src/userfunctions.c:110:6:transmit_data_offline	32	static
-../Core/Src/userfunctions.c:152:6:configure_registers	16	static
-../Core/Src/userfunctions.c:175:6:configure_convert_commands	8	static
-../Core/Src/userfunctions.c:193:6:configure_aux_commands	16	static
-../Core/Src/userfunctions.c:228:6:transmit_dma_to_usart	16	static
+../Core/Src/userfunctions.c:41:5:loop_escape	4	static
+../Core/Src/userfunctions.c:54:6:write_data_to_memory	4	static
+../Core/Src/userfunctions.c:78:6:transmit_data_realtime	16	static
+../Core/Src/userfunctions.c:128:6:transmit_data_offline	32	static
+../Core/Src/userfunctions.c:170:6:configure_registers	16	static
+../Core/Src/userfunctions.c:193:6:configure_convert_commands	8	static
+../Core/Src/userfunctions.c:211:6:configure_aux_commands	16	static
+../Core/Src/userfunctions.c:246:6:transmit_dma_to_usart	16	static

@@ -9,7 +9,7 @@ OFFLINE_TRANSFER = false;
 
 % Bandpass Parameters
 f_low = 1;
-f_high = 10;
+f_high = 100;
 
 % Notch filter parameters
 f0 = 60;             % Notch frequency (Hz)
@@ -36,16 +36,16 @@ total_samples = (TIMESTAMPS_TO_PLOT*SAMPLED_CHANNELS*2);
 while 1
     if device.NumBytesAvailable >= total_samples*2
 
-        signal = 0.195 * (read(device, total_samples, "uint16") - 32768);        
+        readData = 0.195 * (read(device, total_samples, "uint16") - 32768);        
         
         % bandpass 1 to 100
-        Wn = [f_low f_high] / (TIMESTAMPS_TO_PLOT/2);
-        [b, a] = butter(2, Wn, 'bandpass');        
-        signal = filtfilt(b, a, signal); 
+      %  Wn = [f_low f_high] / (TIMESTAMPS_TO_PLOT/2);
+       % [b, a] = butter(2, Wn, 'bandpass');        
+        %signal = filtfilt(b, a, signal); 
 
         %Notch 60
-        [b, a] = iirnotch(wo, bw / (TIMESTAMPS_TO_PLOT/2));
-        readData = filtfilt(b, a, signal);  % Apply zero-phase notch filter
+        %[b, a] = iirnotch(wo, bw / (TIMESTAMPS_TO_PLOT/2));
+        %readData = filtfilt(b, a, signal);  % Apply zero-phase notch filter
 
        
         for i=1:SAMPLED_CHANNELS*2
