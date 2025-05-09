@@ -92,12 +92,12 @@
 
 // Which of the RHD chip's amplifier channels is selected as the starting point to have its data
 // saved and transmitted via USART.
-#define FIRST_SAMPLED_CHANNEL 0
+#define FIRST_SAMPLED_CHANNEL 1
 
 // How many channels (starting from FIRST_SAMPLED_CHANNEL) to have their data saved and transmitted via USART.
 // Note that for DDR, since each received SPI sample contains 2 channels of data, this number is effectively
 // doubled so that with a NUM_CHANNELS_TO_TRANSMIT of 4, 16-bit data of 8 channels is actually being sent via USART.
-#define NUM_SAMPLED_CHANNELS 2
+#define NUM_SAMPLED_CHANNELS 1
 
 // Which peripherals/handles should be used by software, depending on if HAL or LL drivers are used.
 // If the user wishes to use a different peripheral, for example SPI2 instead of SPI3, then that

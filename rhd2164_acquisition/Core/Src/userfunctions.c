@@ -105,13 +105,13 @@ void transmit_data_realtime()
 
 	counter++;
 
-	if(counter>=2000){
+	if(counter>=4500){
 		samples[0] = 1000;
 		samples[1] = 2000;
 		samples[2] = 3000;
 		samples[3] = 4000;
 
-		if(counter==2500)
+		if(counter==5000)
 		{
 			counter = 0;
 		}
