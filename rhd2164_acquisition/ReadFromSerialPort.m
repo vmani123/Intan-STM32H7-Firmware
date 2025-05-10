@@ -3,8 +3,8 @@ function ReadFromSerialPort
 % If received data looks corrupted, try to start running this function with
 % the black RESET button on the NUCLEO board held down, then release RESET
 % button.
-SAMPLED_CHANNELS = 4;
-TIMESTAMPS_TO_PLOT = 2500;
+SAMPLED_CHANNELS = 1;
+TIMESTAMPS_TO_PLOT = 5000;
 OFFLINE_TRANSFER = false;
 
 % Bandpass Parameters
@@ -20,7 +20,7 @@ wo = f0 / (TIMESTAMPS_TO_PLOT/2);    % Normalized notch frequency (0–1)
 
 % Connect to Serial Port that STM32H7 is on
 % (may be different than COM3 on your system)
-device = serialport("/dev/tty.usbserial-A50285BI", 3000000);
+device = serialport("/dev/tty.usbserial-A50285BI", 460800);
  
 
 % Check for already present data on the port
@@ -35,17 +35,19 @@ total_samples = (TIMESTAMPS_TO_PLOT*SAMPLED_CHANNELS*2);
 
 while 1
     if device.NumBytesAvailable >= total_samples*2
-
+        
+        %take away TF 
         readData = 0.195 * (read(device, total_samples, "uint16") - 32768);        
+       % readData = read(device, total_samples, "uint16");   
         
         % bandpass 1 to 100
-      %  Wn = [f_low f_high] / (TIMESTAMPS_TO_PLOT/2);
-       % [b, a] = butter(2, Wn, 'bandpass');        
-        %signal = filtfilt(b, a, signal); 
+         Wn = [f_low f_high] / (TIMESTAMPS_TO_PLOT/2);
+         %[b, a] = butter(2, Wn, 'bandpass');        
+         %readData = filtfilt(b, a, signal); 
 
         %Notch 60
-        %[b, a] = iirnotch(wo, bw / (TIMESTAMPS_TO_PLOT/2));
-        %readData = filtfilt(b, a, signal);  % Apply zero-phase notch filter
+        % [b, a] = iirnotch(wo, bw / (TIMESTAMPS_TO_PLOT/2));
+        % readData = filtfilt(b, a, signal);  % Apply zero-phase notch filter
 
        
         for i=1:SAMPLED_CHANNELS*2
@@ -57,6 +59,7 @@ while 1
 
             title(['Received channel index: ', num2str(i)]);
         end
+
         drawnow;
         
         if OFFLINE_TRANSFER
