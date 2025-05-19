@@ -63,9 +63,11 @@ enum {
 
 extern volatile uint16_t command_sequence_MOSI[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE];
 extern volatile uint32_t command_sequence_MISO[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE];
+extern volatile uint32_t command_sequence_MISO_2[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE];
 
 extern volatile uint16_t sample_counter;
 extern uint16_t *sample_memory;
+extern uint16_t *sample_memory_2;
 extern uint32_t per_channel_sample_memory_capacity;
 
 extern volatile uint16_t aux_command_list[AUX_COMMANDS_PER_SEQUENCE][AUX_COMMAND_LIST_LENGTH];
@@ -115,12 +117,14 @@ int create_command_list_zcheck_DAC(RHDConfigParameters *p, uint16_t *command_lis
 
 void send_spi_command(uint16_t tx_data);
 void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *rx_data_B);
-void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B);
+void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B,
+					   uint32_t merged_word_2, volatile uint16_t *word_A_2, volatile uint16_t *word_B_2);
 
 #ifdef USE_HAL
 extern UART_HandleTypeDef USART;
 extern SPI_HandleTypeDef TRANSMIT_SPI;
 extern SPI_HandleTypeDef RECEIVE_SPI;
+extern SPI_HandleTypeDef RECEIVE_SPI_2;
 extern TIM_HandleTypeDef INTERRUPT_TIM;
 extern TIM_HandleTypeDef CS_DELAY_TIM;
 extern TIM_HandleTypeDef RECEIVE_SCLK_TIM;

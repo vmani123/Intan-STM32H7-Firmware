@@ -34,6 +34,7 @@
 #include <math.h>
 
 uint16_t samples[2 * NUM_SAMPLED_CHANNELS];
+uint16_t samples_2[2 * NUM_SAMPLED_CHANNELS];
 static uint16_t counter = 0;
 
 // Specify condition that should result in the main while loop ending.
@@ -58,7 +59,12 @@ void write_data_to_memory()
 	for (int i = 0; i < NUM_SAMPLED_CHANNELS; i++) {
 		extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
 				&sample_memory[(sample_counter * NUM_SAMPLED_CHANNELS * 2) + i],
-				&sample_memory[(sample_counter * NUM_SAMPLED_CHANNELS * 2) + i + NUM_SAMPLED_CHANNELS]);
+				&sample_memory[(sample_counter * NUM_SAMPLED_CHANNELS * 2) + i + NUM_SAMPLED_CHANNELS],
+				command_sequence_MISO_2[FIRST_SAMPLED_CHANNEL + i + 2],
+				&sample_memory_2[(sample_counter * NUM_SAMPLED_CHANNELS * 2) + i],
+				&sample_memory_2[(sample_counter * NUM_SAMPLED_CHANNELS * 2) + i + NUM_SAMPLED_CHANNELS]);
+
+
 	}
 	sample_counter++;
 
@@ -100,7 +106,10 @@ void transmit_data_realtime()
 	for (int i = 0; i < NUM_SAMPLED_CHANNELS; i++) {
 		extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
 				&samples[i],
-				&samples[i + NUM_SAMPLED_CHANNELS]);
+				&samples[i + NUM_SAMPLED_CHANNELS],
+				command_sequence_MISO_2[FIRST_SAMPLED_CHANNEL + i + 2],
+				&samples_2[i],
+				&samples_2[i + NUM_SAMPLED_CHANNELS]);
 	}
 
 	counter++;
@@ -120,6 +129,7 @@ void transmit_data_realtime()
 
 
 	transmit_dma_to_usart(samples, NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t));
+	transmit_dma_to_usart(samples_2 , NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t));
 #endif
 }
 
@@ -153,12 +163,19 @@ void transmit_data_offline()
 		uart_ready = 0;
 		transmit_dma_to_usart(&sample_memory[samples_per_chunk * i], samples_per_chunk * sizeof(uint16_t));
 		while (uart_ready != 1) {}
+		uart_ready = 0;
+		transmit_dma_to_usart(&sample_memory_2[samples_per_chunk * i], samples_per_chunk * sizeof(uint16_t));
+		while (uart_ready != 1) {}
+
 	}
 
 	// Transmit any remaining data too small to fit in a complete chunk
 	if (remaining_samples > 0) {
 		uart_ready = 0;
 		transmit_dma_to_usart(&sample_memory[samples_per_chunk * num_chunks], remaining_samples * sizeof(uint16_t));
+		while (uart_ready != 1) {}
+		uart_ready = 0;
+		transmit_dma_to_usart(&sample_memory_2[samples_per_chunk * num_chunks], remaining_samples * sizeof(uint16_t));
 		while (uart_ready != 1) {}
 	}
 }

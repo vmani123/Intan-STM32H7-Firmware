@@ -34,10 +34,16 @@
 #include <math.h>
 
 volatile uint16_t command_sequence_MOSI[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE] = {0};
+
 volatile uint32_t command_sequence_MISO[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE] = {0};
+volatile uint32_t command_sequence_MISO_2[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE] = {0};
 
 volatile uint16_t sample_counter = 0;
+volatile uint16_t sample_counter_2 = 0;
+
 uint16_t *sample_memory = NULL;
+uint16_t *sample_memory_2 = NULL;
+
 uint32_t per_channel_sample_memory_capacity = 20000;
 
 volatile uint16_t aux_command_list[AUX_COMMANDS_PER_SEQUENCE][AUX_COMMAND_LIST_LENGTH] = {{0}};
@@ -142,11 +148,22 @@ void transfer_sequence_spi_dma()
 	}
 
 
+	if (HAL_SPI_Receive_DMA(&RECEIVE_SPI_2, (uint8_t*)command_sequence_MISO_2,
+			CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+
 	if (HAL_SPI_Transmit_DMA(&TRANSMIT_SPI, (uint8_t*)command_sequence_MOSI,
 			CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE) != HAL_OK)
 	{
 		Error_Handler();
 	}
+
+
+
+
 #else
 	begin_spi_rx(LL_DMA_MEMORY_INCREMENT, (uint32_t) command_sequence_MISO, CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE);
 	begin_spi_tx(LL_DMA_MEMORY_INCREMENT, (uint32_t) command_sequence_MOSI, CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE);
@@ -158,9 +175,14 @@ void transfer_sequence_spi_dma()
 // Note, free_sample_memory() should be called after this function and when memory allocation is no longer needed.
 void allocate_sample_memory()
 {
+	//first chip
 	per_channel_sample_memory_capacity = calculate_sample_rate() * NUMBER_OF_SECONDS_TO_ACQUIRE;
 	uint32_t total_sample_memory_capacity = NUM_SAMPLED_CHANNELS * 2 * per_channel_sample_memory_capacity;
 	sample_memory = (uint16_t *)malloc(total_sample_memory_capacity * sizeof(uint16_t));
+
+	//second chip
+	sample_memory_2 = (uint16_t *)malloc(total_sample_memory_capacity * sizeof(uint16_t));
+
 }
 
 
@@ -169,6 +191,7 @@ void allocate_sample_memory()
 void free_sample_memory()
 {
 	free(sample_memory);
+	free(sample_memory_2);
 }
 
 
@@ -358,7 +381,8 @@ uint16_t morton_deinterleave(uint32_t x)
 
 
 // Separate a 32-bit merged word (interleaved stream A and stream B data) into 2 distinct 16-bit words.
-void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B)
+void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B,
+					   uint32_t merged_word_2, volatile uint16_t *word_A_2, volatile uint16_t *word_B_2)
 {
 
 	// A slow, but straightforward, implementation to separate every other bit from a 32-bit word into
@@ -375,6 +399,9 @@ void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile
 	// to achieve the same result in fewer operations.
 	*word_A = morton_deinterleave(merged_word); // Data stream A is all add
 	*word_B = morton_deinterleave(merged_word >> 1);
+
+	*word_A_2 = morton_deinterleave(merged_word_2);
+	*word_B_2 = morton_deinterleave(merged_word_2 >> 1);
 }
 
 
@@ -672,10 +699,18 @@ void send_spi_command(uint16_t tx_data)
 void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *rx_data_B)
 {
 	uint32_t rx_data = 0;
+	uint32_t rx_data_2 = 0;
+	uint16_t rx_data_A_2 = 0;
+	uint16_t rx_data_B_2 = 0;
 	reception_in_progress = 1;
 
 #ifdef USE_HAL
 	if (HAL_SPI_Receive_DMA(&RECEIVE_SPI, (uint8_t*) &rx_data, 1) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	if (HAL_SPI_Receive_DMA(&RECEIVE_SPI_2, (uint8_t*) &rx_data_2, 1) != HAL_OK)
 	{
 		Error_Handler();
 	}
@@ -689,7 +724,8 @@ void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *r
 	begin_spi_tx(LL_DMA_MEMORY_NOINCREMENT, (uint32_t) &tx_data, 1);
 #endif
 	while (reception_in_progress == 1) {}
-	extract_ddr_words(rx_data, rx_data_A, rx_data_B);
+	extract_ddr_words(rx_data, rx_data_A, rx_data_B, rx_data_2, &rx_data_A_2, &rx_data_B_2);
+	//extract_ddr_words(rx_data_2, rx_data_A, rx_data_B);
 	int32_t stall = 0;
 }
 
