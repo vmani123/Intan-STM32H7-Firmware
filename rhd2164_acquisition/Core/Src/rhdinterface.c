@@ -38,8 +38,8 @@ volatile uint16_t command_sequence_MOSI[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMM
 volatile uint32_t command_sequence_MISO[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE] = {0};
 volatile uint32_t command_sequence_MISO_2[CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE] = {0};
 
-volatile uint16_t sample_counter = 0;
-volatile uint16_t sample_counter_2 = 0;
+//volatile uint16_t sample_counter = 0;
+//volatile uint16_t sample_counter_2 = 0;
 
 uint16_t *sample_memory = NULL;
 uint16_t *sample_memory_2 = NULL;
@@ -155,7 +155,7 @@ void transfer_sequence_spi_dma()
 	}
 
 
-	if (HAL_SPI_Transmit_DMA(&TRANSMIT_SPI, (uint8_t*)command_sequence_MOSI,
+	if (HAL_SPI_Transmit_DMA(&TRANSMIT_SPI_INTAN, (uint8_t*)command_sequence_MOSI,
 			CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE) != HAL_OK)
 	{
 		Error_Handler();
@@ -338,24 +338,50 @@ void handle_comm_error(CommErrorStatus error_code)
 
 
 // Callback function that executes when Reception of SPI has completed.
-void spi_rx_cplt_callback()
+void spi_rx_cplt_callback_1()
 {
+//	sample_counter_1++;
 	// If main loop is active, drive Main_Monitor_Pin low, write data to memory, transmit data in realtime, and update command_transfer_state
 	if (main_loop_active) {
 		// Indicate main loop is not currently processing by writing Main_Monitor_Pin Low.
 		write_pin(Main_Monitor_GPIO_Port, Main_Monitor_Pin, 0);
 
 		// User-specified function - here is where specified channel(s) can be written to memory.
-		write_data_to_memory();
+//		write_data_to_memory();
 
 		// User-specified function - here is where user can transmit data in real time every sample period.
-		transmit_data_realtime();
+//		transmit_data_realtime();
+
+		//2/6 updates:
+			//update sample counter
+			//write to buffer
+		send_rms_as_necessary(1);
+
 
 		// Update state variable to show that transfer has completed.
 		command_transfer_state = TRANSFER_COMPLETE;
 	}
 
 	// If main loop is not active, that indicates just a single SPI DMA transfer has occurred, so set reception_in_progress to 0
+	else {
+#ifdef USE_HAL
+#else
+		end_spi_rx();
+#endif
+		reception_in_progress = 0;
+	}
+}
+
+void spi_rx_cplt_callback_2()
+{
+//	sample_counter_2++;
+	if(main_loop_active)
+	{
+		write_pin(Main_Monitor_GPIO_Port, Main_Monitor_Pin, 0);
+		send_rms_as_necessary(2);
+		command_transfer_state = TRANSFER_COMPLETE;
+
+	}
 	else {
 #ifdef USE_HAL
 #else
@@ -381,8 +407,7 @@ uint16_t morton_deinterleave(uint32_t x)
 
 
 // Separate a 32-bit merged word (interleaved stream A and stream B data) into 2 distinct 16-bit words.
-void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B,
-					   uint32_t merged_word_2, volatile uint16_t *word_A_2, volatile uint16_t *word_B_2)
+void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B)
 {
 
 	// A slow, but straightforward, implementation to separate every other bit from a 32-bit word into
@@ -400,8 +425,6 @@ void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile
 	*word_A = morton_deinterleave(merged_word); // Data stream A is all add
 	*word_B = morton_deinterleave(merged_word >> 1);
 
-	*word_A_2 = morton_deinterleave(merged_word_2);
-	*word_B_2 = morton_deinterleave(merged_word_2 >> 1);
 }
 
 
@@ -700,6 +723,7 @@ void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *r
 {
 	uint32_t rx_data = 0;
 	uint32_t rx_data_2 = 0;
+
 	uint16_t rx_data_A_2 = 0;
 	uint16_t rx_data_B_2 = 0;
 	reception_in_progress = 1;
@@ -715,7 +739,7 @@ void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *r
 		Error_Handler();
 	}
 
-	if (HAL_SPI_Transmit_DMA(&TRANSMIT_SPI, (uint8_t*) &tx_data, 1) != HAL_OK)
+	if (HAL_SPI_Transmit_DMA(&TRANSMIT_SPI_INTAN, (uint8_t*) &tx_data, 1) != HAL_OK)
 	{
 		Error_Handler();
 	}
@@ -724,9 +748,10 @@ void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *r
 	begin_spi_tx(LL_DMA_MEMORY_NOINCREMENT, (uint32_t) &tx_data, 1);
 #endif
 	while (reception_in_progress == 1) {}
-	extract_ddr_words(rx_data, rx_data_A, rx_data_B, rx_data_2, &rx_data_A_2, &rx_data_B_2);
-	//extract_ddr_words(rx_data_2, rx_data_A, rx_data_B);
-	int32_t stall = 0;
+//	extract_ddr_words(rx_data, rx_data_A, rx_data_B, rx_data_2, &rx_data_A_2, &rx_data_B_2);
+	extract_ddr_words(rx_data, rx_data_A, rx_data_B);
+	extract_ddr_words(rx_data_2, &rx_data_A_2, &rx_data_B_2);
+//	int32_t stall = 0;
 }
 
 
@@ -735,7 +760,11 @@ void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *r
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if (hspi == &RECEIVE_SPI) {
-		spi_rx_cplt_callback();
+		spi_rx_cplt_callback_1();
+	}
+	if(hspi == &RECEIVE_SPI_2)
+	{
+		spi_rx_cplt_callback_2();
 	}
 }
 

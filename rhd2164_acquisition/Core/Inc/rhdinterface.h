@@ -117,14 +117,14 @@ int create_command_list_zcheck_DAC(RHDConfigParameters *p, uint16_t *command_lis
 
 void send_spi_command(uint16_t tx_data);
 void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *rx_data_B);
-void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B,
-					   uint32_t merged_word_2, volatile uint16_t *word_A_2, volatile uint16_t *word_B_2);
+void extract_ddr_words(uint32_t merged_word, volatile uint16_t *word_A, volatile uint16_t *word_B);
 
 #ifdef USE_HAL
 extern UART_HandleTypeDef USART;
-extern SPI_HandleTypeDef TRANSMIT_SPI;
+extern SPI_HandleTypeDef TRANSMIT_SPI_ESP;
 extern SPI_HandleTypeDef RECEIVE_SPI;
 extern SPI_HandleTypeDef RECEIVE_SPI_2;
+extern SPI_HandleTypeDef TRANSMIT_SPI_INTAN;
 extern TIM_HandleTypeDef INTERRUPT_TIM;
 extern TIM_HandleTypeDef CS_DELAY_TIM;
 extern TIM_HandleTypeDef RECEIVE_SCLK_TIM;

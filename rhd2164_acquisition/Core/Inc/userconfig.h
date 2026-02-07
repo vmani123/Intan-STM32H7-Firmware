@@ -104,9 +104,10 @@
 // change should be made here (in addition to configuring that peripheral properly in the .ioc file).
 #ifdef USE_HAL
 #define USART huart3
-#define TRANSMIT_SPI hspi3
+#define TRANSMIT_SPI_INTAN hspi3
 #define RECEIVE_SPI hspi1
 #define RECEIVE_SPI_2 hspi2
+#define TRANSMIT_SPI_ESP hspi4
 #define INTERRUPT_TIM htim3
 #define CS_DELAY_TIM htim2
 #define RECEIVE_SCLK_TIM htim1

@@ -71,9 +71,11 @@
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
+SPI_HandleTypeDef hspi4;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi2_rx;
 DMA_HandleTypeDef hdma_spi3_tx;
+DMA_HandleTypeDef hdma_spi4_tx;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
@@ -99,6 +101,7 @@ static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_SPI4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -159,6 +162,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM8_Init();
   MX_SPI2_Init();
+  MX_SPI4_Init();
   /* USER CODE BEGIN 2 */
 
   TIM1->EGR |= TIM_EGR_UG;  // update event
@@ -172,16 +176,16 @@ int main(void)
   // Allocate sample_memory array which will be used to store acquired data.
   allocate_sample_memory();
 
-  // Set up SPI mMA configuration for when SPI transfers begin.
-  initialize_spi_with_dma();
+  // Set up SPI DMA configuration for when SPI transfers begin.
+//  initialize_spi_with_dma();
 
   // Set up timers used to generate 32-bit SCLK used to read DDR MISO to trigger once TRANSMIT_SPI CS goes low.
-  initialize_ddr_sclk_timers();
+//  initialize_ddr_sclk_timers();
 
   // Initialize Intan chip registers with suitable settings for this application.
   // This not only determines the initial registers, but actually writes them via SPI.
   RHDConfigParameters parameters;
-  configure_registers(&parameters);
+//  configure_registers(&parameters);
 
   // Populate first CONVERT_COMMANDS_PER_SEQUENCE that will repeatedly
   // convert for each sample interrupt.
@@ -195,8 +199,8 @@ int main(void)
   write_pin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 
   // Start timer so that at every period defined by INTERRUPT_TIM, an interrupt occurs, starting an SPI command sequence.
-  sample_counter = 0;
-  enable_interrupt_timer(1);
+//  sample_counter = 0;
+//  enable_interrupt_timer(1);
   main_loop_active = 1;
 
   /* USER CODE END 2 */
@@ -204,17 +208,26 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
+//  uint8_t buf[64];
+//  for(int i=0;i<64;i++)
+//  {
+//	  buf[i] = (uint8_t) i;
+//  }
+
 
   // Keep looping, doing nothing (other than handling interrupts) until enough data has been gathered
+//  uint32_t start = HAL_GetTick();
+//  int i=0;
   while (1) {
+//	  HAL_SPI_Transmit(&hspi4, (uint8_t*) buf, 64, 1);
 
 	  // Break infinite loop when loop_escape() condition have been met.
 	  if (loop_escape()) break;
 
 	  // During infinite loop, write this pin High to indicate this main loop is currently processing.
 	  write_pin(Main_Monitor_GPIO_Port, Main_Monitor_Pin, 1);
-
-
+//	  HAL_Delay(500);
+//	  i++;
 
     /* USER CODE END WHILE */
 
@@ -471,6 +484,53 @@ static void MX_SPI3_Init(void)
   /* USER CODE BEGIN SPI3_Init 2 */
 
   /* USER CODE END SPI3_Init 2 */
+
+}
+
+/**
+  * @brief SPI4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI4_Init(void)
+{
+
+  /* USER CODE BEGIN SPI4_Init 0 */
+
+  /* USER CODE END SPI4_Init 0 */
+
+  /* USER CODE BEGIN SPI4_Init 1 */
+
+  /* USER CODE END SPI4_Init 1 */
+  /* SPI4 parameter configuration*/
+  hspi4.Instance = SPI4;
+  hspi4.Init.Mode = SPI_MODE_SLAVE;
+  hspi4.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
+  hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi4.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi4.Init.CRCPolynomial = 0x0;
+  hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  hspi4.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+  hspi4.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+  hspi4.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi4.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi4.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+  hspi4.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+  hspi4.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+  hspi4.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+  hspi4.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+  if (HAL_SPI_Init(&hspi4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI4_Init 2 */
+
+  /* USER CODE END SPI4_Init 2 */
 
 }
 
@@ -842,6 +902,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 
 }
 
@@ -853,8 +916,8 @@ static void MX_DMA_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
@@ -994,8 +1057,8 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */

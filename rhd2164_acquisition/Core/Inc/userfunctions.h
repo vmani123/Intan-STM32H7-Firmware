@@ -73,6 +73,8 @@ void configure_aux_commands(RHDConfigParameters *parameters);
 // Use DMA to transmit num_bytes of data from memory pointer tx_data directly to USART.
 void transmit_dma_to_usart(volatile uint16_t *tx_data, uint16_t num_bytes);
 
+void send_rms_as_necessary(int called_from);
+void transmit_dma_to_spi(SPI_HandleTypeDef* hspi, volatile uint16_t* tx_data, uint32_t num_bytes);
 /* END OF DECLARATION OF FUNCTIONS LIKELY TO BE CHANGED BY USER */
 
 /* START OF STATIC INLINE FUNCTIONS NOT LIKELY TO BE CHANGED BY USER
@@ -106,6 +108,8 @@ static inline void enable_interrupt_timer(int enable)
 	}
 #endif
 }
+
+
 
 /* END OF STATIC INLINE FUNCTIONS NOT LIKELY TO BE CHANGED BY USER */
 

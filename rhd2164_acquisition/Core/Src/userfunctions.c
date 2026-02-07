@@ -32,10 +32,20 @@
 #include "userfunctions.h"
 #include <stddef.h>
 #include <math.h>
+#include "arm_math.h"
+//#include "arm_rms_q15.c"
+
+
 
 uint16_t samples[2 * NUM_SAMPLED_CHANNELS];
 uint16_t samples_2[2 * NUM_SAMPLED_CHANNELS];
-static uint16_t counter = 0;
+uint16_t samples_50_ms_1[2*NUM_SAMPLED_CHANNELS][50];
+uint16_t samples_50_ms_2[2*NUM_SAMPLED_CHANNELS][50];
+uint16_t sampled_rms_1[2*NUM_SAMPLED_CHANNELS + 1];
+uint16_t sampled_rms_2[2*NUM_SAMPLED_CHANNELS + 1];
+int sample_counter_1 = 0;
+int sample_counter_2 = 0;
+int counter = 0;
 
 // Specify condition that should result in the main while loop ending.
 // By default, escape once 1 second of data has been gathered.
@@ -80,6 +90,257 @@ void write_data_to_memory()
 }
 
 
+/**
+  @brief         Q15 square root function.
+  @param[in]     in    input value.  The range of the input value is [0 +1) or 0x0000 to 0x7FFF
+  @param[out]    pOut  points to square root of input value
+  @return        execution status
+                   - \ref ARM_MATH_SUCCESS        : input value is positive
+                   - \ref ARM_MATH_ARGUMENT_ERROR : input value is negative; *pOut is set to 0
+ */
+
+arm_status arm_sqrt_q15(
+  q15_t in,
+  q15_t * pOut)
+{
+  q31_t bits_val1;
+  q15_t number, temp1, var1, signBits1, half;
+  float32_t temp_float1;
+  union
+  {
+    q31_t fracval;
+    float32_t floatval;
+  } tempconv;
+
+  number = in;
+
+  /* If the input is a positive number then compute the signBits. */
+  if (number > 0)
+  {
+    signBits1 = __CLZ(number) - 17;
+
+    /* Shift by the number of signBits1 */
+    if ((signBits1 % 2) == 0)
+    {
+      number = number << signBits1;
+    }
+    else
+    {
+      number = number << (signBits1 - 1);
+    }
+
+    /* Calculate half value of the number */
+    half = number >> 1;
+    /* Store the number for later use */
+    temp1 = number;
+
+    /* Convert to float */
+    temp_float1 = number * 3.051757812500000e-005f;
+    /* Store as integer */
+    tempconv.floatval = temp_float1;
+    bits_val1 = tempconv.fracval;
+    /* Subtract the shifted value from the magic number to give intial guess */
+    bits_val1 = 0x5f3759df - (bits_val1 >> 1);  /* gives initial guess */
+    /* Store as float */
+    tempconv.fracval = bits_val1;
+    temp_float1 = tempconv.floatval;
+    /* Convert to integer format */
+    var1 = (q31_t) (temp_float1 * 16384);
+
+    /* 1st iteration */
+    var1 = ((q15_t) ((q31_t) var1 * (0x3000 -
+                                     ((q15_t)
+                                      ((((q15_t)
+                                         (((q31_t) var1 * var1) >> 15)) *
+                                        (q31_t) half) >> 15))) >> 15)) << 2;
+    /* 2nd iteration */
+    var1 = ((q15_t) ((q31_t) var1 * (0x3000 -
+                                     ((q15_t)
+                                      ((((q15_t)
+                                         (((q31_t) var1 * var1) >> 15)) *
+                                        (q31_t) half) >> 15))) >> 15)) << 2;
+    /* 3rd iteration */
+    var1 = ((q15_t) ((q31_t) var1 * (0x3000 -
+                                     ((q15_t)
+                                      ((((q15_t)
+                                         (((q31_t) var1 * var1) >> 15)) *
+                                        (q31_t) half) >> 15))) >> 15)) << 2;
+
+    /* Multiply the inverse square root with the original value */
+    var1 = ((q15_t) (((q31_t) temp1 * var1) >> 15)) << 1;
+
+    /* Shift the output down accordingly */
+    if ((signBits1 % 2) == 0)
+    {
+      var1 = var1 >> (signBits1 / 2);
+    }
+    else
+    {
+      var1 = var1 >> ((signBits1 - 1) / 2);
+    }
+    *pOut = var1;
+
+    return (ARM_MATH_SUCCESS);
+  }
+  /* If the number is a negative number then store zero as its square root value */
+  else
+  {
+    *pOut = 0;
+
+    return (ARM_MATH_ARGUMENT_ERROR);
+  }
+}
+
+
+void arm_rms_q15(
+  const q15_t * pSrc,
+        uint32_t blockSize,
+        q15_t * pResult)
+{
+        uint32_t blkCnt;                               /* Loop counter */
+        q63_t sum = 0;                                 /* Temporary result storage */
+        q15_t in;                                      /* Temporary variable to store input value */
+
+#if defined (ARM_MATH_LOOPUNROLL) && defined (ARM_MATH_DSP)
+        q31_t in32;                                    /* Temporary variable to store input value */
+#endif
+
+#if defined (ARM_MATH_LOOPUNROLL)
+
+  /* Loop unrolling: Compute 4 outputs at a time */
+  blkCnt = blockSize >> 2U;
+
+  while (blkCnt > 0U)
+  {
+    /* C = A[0] * A[0] + A[1] * A[1] + ... + A[blockSize-1] * A[blockSize-1] */
+
+    /* Compute sum of squares and store result in a temporary variable. */
+#if defined (ARM_MATH_DSP)
+    in32 = read_q15x2_ia ((q15_t **) &pSrc);
+    sum = __SMLALD(in32, in32, sum);
+
+    in32 = read_q15x2_ia ((q15_t **) &pSrc);
+    sum = __SMLALD(in32, in32, sum);
+#else
+    in = *pSrc++;
+    sum += ((q31_t) in * in);
+
+    in = *pSrc++;
+    sum += ((q31_t) in * in);
+
+    in = *pSrc++;
+    sum += ((q31_t) in * in);
+
+    in = *pSrc++;
+    sum += ((q31_t) in * in);
+#endif /* #if defined (ARM_MATH_DSP) */
+
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+
+  /* Loop unrolling: Compute remaining outputs */
+  blkCnt = blockSize % 0x4U;
+
+#else
+
+  /* Initialize blkCnt with number of samples */
+  blkCnt = blockSize;
+
+#endif /* #if defined (ARM_MATH_LOOPUNROLL) */
+
+  while (blkCnt > 0U)
+  {
+    /* C = A[0] * A[0] + A[1] * A[1] + ... + A[blockSize-1] * A[blockSize-1] */
+
+    in = *pSrc++;
+    /* Compute sum of squares and store result in a temporary variable. */
+    sum += ((q31_t) in * in);
+
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+
+  /* Truncating and saturating the accumulator to 1.15 format */
+  /* Store result in destination */
+  arm_sqrt_q15(__SSAT((sum / (q63_t)blockSize) >> 15, 16), pResult);
+}
+
+/**
+  @} end of RMS group
+ */
+
+//Add data to a buffer that contains 50 ms of data from each channel
+//If the count of samples is high enough, calculcate the RMS and send that over SPI
+//Include a padded/magic number before and after for readability
+void send_rms_as_necessary(int called_from)
+{
+	if(called_from==1)
+	{
+		//time to send!
+		if(sample_counter_1==50){
+			sample_counter_1 = 0;
+
+			//calculcate RMS for each channel
+			for(int i=0;i<NUM_SAMPLED_CHANNELS*2;i++)
+			{
+				arm_rms_q15((q15_t*)samples_50_ms_1[i], 50, (q15_t*) &sampled_rms_1[i+1]);
+			}
+
+			//send over SPI
+			sampled_rms_1[0] = 1;
+
+			transmit_dma_to_spi(&hspi4, sampled_rms_1, sizeof(sampled_rms_1));
+//			transmit_dma_to_spi(hspi, tx_data, num_bytes)
+
+
+		}
+		else //just add to buffer
+		{
+			sample_counter_1++;
+			for(int i=0;i<NUM_SAMPLED_CHANNELS;i++)
+			{
+				extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
+						&samples_50_ms_1[i][sample_counter_1],
+						&samples_50_ms_1[i + NUM_SAMPLED_CHANNELS][sample_counter_1]);
+			}
+
+		}
+	} else {
+		//time to send!
+		if(sample_counter_2==50){
+			sample_counter_2 = 0;
+
+			//calculcate RMS for each channel
+			for(int i=0;i<NUM_SAMPLED_CHANNELS*2;i++)
+			{
+				arm_rms_q15((q15_t*)samples_50_ms_1[i], 50, (q15_t*) &sampled_rms_1[i+1]);
+			}
+
+			//send over SPI
+			sampled_rms_1[0] = 2;
+
+			transmit_dma_to_spi(&hspi4, sampled_rms_2, sizeof(sampled_rms_2));
+
+
+		}
+		else //just add to buffer
+		{
+			sample_counter_2++;
+			for(int i=0;i<NUM_SAMPLED_CHANNELS;i++)
+			{
+				extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
+						&samples_50_ms_2[i][sample_counter_2],
+						&samples_50_ms_2[i + NUM_SAMPLED_CHANNELS][sample_counter_2]);
+			}
+
+		}
+	}
+
+
+}
+
+
 // Determine if data is ready to be transmitted, and if so, transmit (for example via USART).
 void transmit_data_realtime()
 {
@@ -106,10 +367,7 @@ void transmit_data_realtime()
 	for (int i = 0; i < NUM_SAMPLED_CHANNELS; i++) {
 		extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
 				&samples[i],
-				&samples[i + NUM_SAMPLED_CHANNELS],
-				command_sequence_MISO_2[FIRST_SAMPLED_CHANNEL + i + 2],
-				&samples_2[i],
-				&samples_2[i + NUM_SAMPLED_CHANNELS]);
+				&samples[i + NUM_SAMPLED_CHANNELS]);
 	}
 
 	counter++;
@@ -299,3 +557,12 @@ void transmit_dma_to_usart(volatile uint16_t *tx_data, uint16_t num_bytes)
 	LL_USART_EnableDMAReq_TX(USART);
 #endif
 }
+
+void transmit_dma_to_spi(SPI_HandleTypeDef* hspi, volatile uint16_t* tx_data, uint32_t num_bytes)
+{
+	if(HAL_SPI_Transmit_DMA(hspi, (uint8_t*) tx_data, num_bytes)!= HAL_OK)
+	{
+		Error_Handler();
+	}
+}
+
