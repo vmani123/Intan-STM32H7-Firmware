@@ -177,10 +177,10 @@ int main(void)
   allocate_sample_memory();
 
   // Set up SPI DMA configuration for when SPI transfers begin.
-//  initialize_spi_with_dma();
+  initialize_spi_with_dma();
 
   // Set up timers used to generate 32-bit SCLK used to read DDR MISO to trigger once TRANSMIT_SPI CS goes low.
-//  initialize_ddr_sclk_timers();
+  initialize_ddr_sclk_timers();
 
   // Initialize Intan chip registers with suitable settings for this application.
   // This not only determines the initial registers, but actually writes them via SPI.
@@ -190,7 +190,7 @@ int main(void)
   // Populate first CONVERT_COMMANDS_PER_SEQUENCE that will repeatedly
   // convert for each sample interrupt.
   // Note that AUX_COMMANDS_PER_SEQUENCE remain unpopulated in command_sequence_MOSI after this.
-  configure_convert_commands();
+//  configure_convert_commands();
 
   // Populate the AUX_COMMANDS_PER_SEQUENCE command lists (default 3) with auxiliary commands.
   configure_aux_commands(&parameters);
@@ -200,7 +200,7 @@ int main(void)
 
   // Start timer so that at every period defined by INTERRUPT_TIM, an interrupt occurs, starting an SPI command sequence.
 //  sample_counter = 0;
-//  enable_interrupt_timer(1);
+  enable_interrupt_timer(1);
   main_loop_active = 1;
 
   /* USER CODE END 2 */
@@ -580,7 +580,10 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sSlaveConfig.SlaveMode = TIM_SLAVEMODE_TRIGGER;
-  sSlaveConfig.InputTrigger = TIM_TS_ITR1;
+  sSlaveConfig.InputTrigger = TIM_TS_ETRF;
+  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_INVERTED;
+  sSlaveConfig.TriggerPrescaler = TIM_TRIGGERPRESCALER_DIV1;
+  sSlaveConfig.TriggerFilter = 5;
   if (HAL_TIM_SlaveConfigSynchro(&htim1, &sSlaveConfig) != HAL_OK)
   {
     Error_Handler();

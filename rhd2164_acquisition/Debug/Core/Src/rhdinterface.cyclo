@@ -1,7 +1,7 @@
 ../Core/Inc/rhdinterface.h:145:20:write_pin	1
 ../Core/Src/rhdinterface.c:78:6:sample_interrupt_routine	3
 ../Core/Src/rhdinterface.c:119:6:cycle_aux_commands	3
-../Core/Src/rhdinterface.c:137:6:transfer_sequence_spi_dma	4
+../Core/Src/rhdinterface.c:137:6:transfer_sequence_spi_dma	3
 ../Core/Src/rhdinterface.c:176:6:allocate_sample_memory	1
 ../Core/Src/rhdinterface.c:191:6:free_sample_memory	1
 ../Core/Src/rhdinterface.c:204:6:initialize_spi_with_dma	1
@@ -23,7 +23,7 @@
 ../Core/Src/rhdinterface.c:649:5:create_command_list_dummy	2
 ../Core/Src/rhdinterface.c:665:5:create_command_list_zcheck_DAC	11
 ../Core/Src/rhdinterface.c:711:6:send_spi_command	1
-../Core/Src/rhdinterface.c:722:6:send_receive_spi_command	5
+../Core/Src/rhdinterface.c:722:6:send_receive_spi_command	4
 ../Core/Src/rhdinterface.c:760:6:HAL_SPI_RxCpltCallback	3
 ../Core/Src/rhdinterface.c:773:6:HAL_SPI_ErrorCallback	1
 ../Core/Src/rhdinterface.c:780:6:HAL_UART_TxCpltCallback	1

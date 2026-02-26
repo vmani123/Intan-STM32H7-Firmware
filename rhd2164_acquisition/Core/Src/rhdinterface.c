@@ -147,12 +147,12 @@ void transfer_sequence_spi_dma()
 		Error_Handler();
 	}
 
-
-	if (HAL_SPI_Receive_DMA(&RECEIVE_SPI_2, (uint8_t*)command_sequence_MISO_2,
-			CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE) != HAL_OK)
-	{
-		Error_Handler();
-	}
+//
+//	if (HAL_SPI_Receive_DMA(&RECEIVE_SPI_2, (uint8_t*)command_sequence_MISO_2,
+//			CONVERT_COMMANDS_PER_SEQUENCE + AUX_COMMANDS_PER_SEQUENCE) != HAL_OK)
+//	{
+//		Error_Handler();
+//	}
 
 
 	if (HAL_SPI_Transmit_DMA(&TRANSMIT_SPI_INTAN, (uint8_t*)command_sequence_MOSI,
@@ -734,10 +734,10 @@ void send_receive_spi_command(uint16_t tx_data, uint16_t *rx_data_A, uint16_t *r
 		Error_Handler();
 	}
 
-	if (HAL_SPI_Receive_DMA(&RECEIVE_SPI_2, (uint8_t*) &rx_data_2, 1) != HAL_OK)
-	{
-		Error_Handler();
-	}
+//	if (HAL_SPI_Receive_DMA(&RECEIVE_SPI_2, (uint8_t*) &rx_data_2, 1) != HAL_OK)
+//	{
+//		Error_Handler();
+//	}
 
 	if (HAL_SPI_Transmit_DMA(&TRANSMIT_SPI_INTAN, (uint8_t*) &tx_data, 1) != HAL_OK)
 	{
