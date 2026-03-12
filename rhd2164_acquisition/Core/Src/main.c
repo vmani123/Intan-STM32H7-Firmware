@@ -205,19 +205,20 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-//  uint8_t buf[64];
-//  for(int i=0;i<64;i++)
-//  {
-//	  buf[i] = (uint8_t) i;
-//  }
+  uint8_t buf = 0x0F;
 
+
+
+  //shake hands for 50 ms
+  uint32_t start = HAL_GetTick();
+  while((start + 50) >= HAL_GetTick())
+
+  	HAL_SPI_Transmit(&hspi4, (uint8_t*) buf, sizeof(buf), 1);
+  }
 
   // Keep looping, doing nothing (other than handling interrupts) until enough data has been gathered
-//  uint32_t start = HAL_GetTick();
-//  int i=0;
-  while (1) {
-//	  HAL_SPI_Transmit(&hspi4, (uint8_t*) buf, 64, 1);
 
+  while (1) {
 	  // Break infinite loop when loop_escape() condition have been met.
 	  if (loop_escape()) break;
 
@@ -501,17 +502,18 @@ static void MX_SPI4_Init(void)
   /* USER CODE END SPI4_Init 1 */
   /* SPI4 parameter configuration*/
   hspi4.Instance = SPI4;
-  hspi4.Init.Mode = SPI_MODE_SLAVE;
+  hspi4.Init.Mode = SPI_MODE_MASTER;
   hspi4.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
   hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi4.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
   hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi4.Init.CRCPolynomial = 0x0;
-  hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  hspi4.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
   hspi4.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
   hspi4.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
   hspi4.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;

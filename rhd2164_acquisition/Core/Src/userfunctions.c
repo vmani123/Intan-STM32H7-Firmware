@@ -39,10 +39,13 @@
 
 uint16_t samples[2 * NUM_SAMPLED_CHANNELS];
 uint16_t samples_2[2 * NUM_SAMPLED_CHANNELS];
+
 uint16_t samples_50_ms_1[2*NUM_SAMPLED_CHANNELS][50];
 uint16_t samples_50_ms_2[2*NUM_SAMPLED_CHANNELS][50];
+
 uint16_t sampled_rms_1[2*NUM_SAMPLED_CHANNELS + 1];
 uint16_t sampled_rms_2[2*NUM_SAMPLED_CHANNELS + 1];
+
 int sample_counter_1 = 0;
 int sample_counter_2 = 0;
 int counter = 0;
@@ -288,7 +291,8 @@ void send_rms_as_necessary(int called_from)
 			}
 
 			//send over SPI
-			sampled_rms_1[0] = 1;
+			sampled_rms_1[0] = 0x0F;
+
 
 			transmit_dma_to_spi(&hspi4, sampled_rms_1, sizeof(sampled_rms_1));
 //			transmit_dma_to_spi(hspi, tx_data, num_bytes)
