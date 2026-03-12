@@ -205,7 +205,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  uint8_t buf = 0x0F;
+  uint16_t buf = 0x0F0F;
 
 
 

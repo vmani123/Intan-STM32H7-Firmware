@@ -291,7 +291,7 @@ void send_rms_as_necessary(int called_from)
 			}
 
 			//send over SPI
-			sampled_rms_1[0] = 0x0F;
+			sampled_rms_1[0] = 0x0F0F;
 
 
 			transmit_dma_to_spi(&hspi4, sampled_rms_1, sizeof(sampled_rms_1));
