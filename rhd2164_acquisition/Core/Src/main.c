@@ -196,8 +196,28 @@ int main(void)
   write_pin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 
   // Start timer so that at every period defined by INTERRUPT_TIM, an interrupt occurs, starting an SPI command sequence.
-//  sample_counter = 0;
+
+
+  uint8_t buf[2] = {0x0F, 0x0F};
+  uint8_t receiveData[2] = {0x00, 0x00};
+
+
+
+  //shake hands
+  uint32_t start = HAL_GetTick();
+  while(1){
+
+  	HAL_SPI_TransmitReceive(&hspi4, &buf, &receiveData, sizeof(buf), 10);
+  	if((receiveData[0] == 0x0F) && (receiveData[1] == 0x0F)){
+  			break;
+  	}
+  }
+
+	//chill out for 20 ms
+  start = HAL_GetTick();
+	while((start + 20) >= HAL_GetTick());
   enable_interrupt_timer(1);
+
   main_loop_active = 1;
 
   /* USER CODE END 2 */
@@ -205,16 +225,6 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  uint16_t buf = 0x0F0F;
-
-
-
-  //shake hands for 50 ms
-  uint32_t start = HAL_GetTick();
-  while((start + 50) >= HAL_GetTick())
-
-  	HAL_SPI_Transmit(&hspi4, (uint8_t*) buf, sizeof(buf), 1);
-  }
 
   // Keep looping, doing nothing (other than handling interrupts) until enough data has been gathered
 
@@ -503,11 +513,11 @@ static void MX_SPI4_Init(void)
   /* SPI4 parameter configuration*/
   hspi4.Instance = SPI4;
   hspi4.Init.Mode = SPI_MODE_MASTER;
-  hspi4.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
+  hspi4.Init.Direction = SPI_DIRECTION_2LINES;
   hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi4.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi4.Init.NSS = SPI_NSS_HARD_OUTPUT;
   hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
   hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
