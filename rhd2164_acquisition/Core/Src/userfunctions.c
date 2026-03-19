@@ -46,6 +46,8 @@ uint16_t samples_50_ms_2[2*NUM_SAMPLED_CHANNELS][50];
 uint16_t sampled_rms_1[2*NUM_SAMPLED_CHANNELS + 1];
 uint16_t sampled_rms_2[2*NUM_SAMPLED_CHANNELS + 1];
 
+#define SAMPLES_IN_10_MS 50
+
 int sample_counter_1 = 0;
 int sample_counter_2 = 0;
 int counter = 0;
@@ -281,13 +283,13 @@ void send_rms_as_necessary(int called_from)
 	if(called_from==1)
 	{
 		//time to send!
-		if(sample_counter_1==50){
+		if(sample_counter_1==SAMPLES_IN_10_MS){
 			sample_counter_1 = 0;
 
 			//calculcate RMS for each channel
 			for(int i=0;i<NUM_SAMPLED_CHANNELS*2;i++)
 			{
-				arm_rms_q15((q15_t*)samples_50_ms_1[i], 50, (q15_t*) &sampled_rms_1[i+1]);
+				arm_rms_q15((q15_t*)samples_50_ms_1[i], SAMPLES_IN_10_MS, (q15_t*) &sampled_rms_1[i+1]);
 			}
 
 			//send over SPI
@@ -312,13 +314,13 @@ void send_rms_as_necessary(int called_from)
 		}
 	} else {
 		//time to send!
-		if(sample_counter_2==50){
+		if(sample_counter_2==SAMPLES_IN_10_MS){
 			sample_counter_2 = 0;
 
 			//calculcate RMS for each channel
 			for(int i=0;i<NUM_SAMPLED_CHANNELS*2;i++)
 			{
-				arm_rms_q15((q15_t*)samples_50_ms_1[i], 50, (q15_t*) &sampled_rms_1[i+1]);
+				arm_rms_q15((q15_t*)samples_50_ms_1[i], SAMPLES_IN_10_MS, (q15_t*) &sampled_rms_1[i+1]);
 			}
 
 			//send over SPI
