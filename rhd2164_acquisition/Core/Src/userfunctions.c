@@ -370,30 +370,37 @@ void transmit_data_realtime()
 //		command_sequence_MISO[i] = i;
 //	}
 
+	uint16_t channelBuffer[NUM_SAMPLED_CHANNELS * 2];
 	for (int i = 0; i < NUM_SAMPLED_CHANNELS; i++) {
 		extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
 				&samples[i],
 				&samples[i + NUM_SAMPLED_CHANNELS]);
+
+				channelBuffer[i] = samples[i];
+				channelBuffer[i + NUM_SAMPLED_CHANNELS] = samples[i + NUM_SAMPLED_CHANNELS];
 	}
 
-	counter++;
-
-	if(counter>=4500){
-		samples[0] = 1000;
-		samples[1] = 2000;
-		samples[2] = 3000;
-		samples[3] = 4000;
-
-		if(counter==5000)
-		{
-			counter = 0;
+	int sum_of_squares(uint16_t *channelBuffer, int length) {
+		int sum = 0;
+		for (int i = 0; i < length; i++){
+			sum += channelBuffer[i] * channelBuffer[i]; //square the values
 		}
-
+		return sum;
 	}
 
+	//calculate the rms using sum_of_squares
+	int length = NUM_SAMPLED_CHANNELS * 2;
+	float rmsSum;
+	rmsSum = sqrtf((float)sum_of_squares(channelBuffer, length) / length);
+	uint16_t scaledRms = (uint16_t)(rmsSum * 100);
 
-	transmit_dma_to_usart(samples, NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t));
-	transmit_dma_to_usart(samples_2 , NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t));
+
+
+
+
+
+	transmit_dma_to_usart(&scaledRms, NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t)); //usesg address of buffer
+	//transmit_dma_to_usart(samples_2 , NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t));
 #endif
 }
 
