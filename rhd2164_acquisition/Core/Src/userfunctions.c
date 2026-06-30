@@ -370,37 +370,55 @@ void transmit_data_realtime()
 //		command_sequence_MISO[i] = i;
 //	}
 
-	uint16_t channelBuffer[NUM_SAMPLED_CHANNELS * 2];
-	for (int i = 0; i < NUM_SAMPLED_CHANNELS; i++) {
-		extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
-				&samples[i],
-				&samples[i + NUM_SAMPLED_CHANNELS]);
+#define THRESHOLD 500
+#define LENGTH NUM_SAMPLED_CHANNELS * 2
+	uint16_t channelBuffer[LENGTH];
 
-				channelBuffer[i] = samples[i];
-				channelBuffer[i + NUM_SAMPLED_CHANNELS] = samples[i + NUM_SAMPLED_CHANNELS];
-	}
-
-	int sum_of_squares(uint16_t *channelBuffer, int length) {
+	int sum_of_squares(uint16_t *channelBuffer, int N) {
 		int sum = 0;
-		for (int i = 0; i < length; i++){
+		for (int i = 0; i < N; i++){
 			sum += channelBuffer[i] * channelBuffer[i]; //square the values
 		}
 		return sum;
 	}
 
-	//calculate the rms using sum_of_squares
-	int length = NUM_SAMPLED_CHANNELS * 2;
-	float rmsSum;
-	rmsSum = sqrtf((float)sum_of_squares(channelBuffer, length) / length);
-	uint16_t scaledRms = (uint16_t)(rmsSum * 100);
+	void process_buffer(uint16_t *buf, int length) {
+		int window_start = -1; //inactive window initially
+
+		for (int i = 0; i < length; i++){
+		if (buf[i] > THRESHOLD && window_start == -1){
+			//signal is above required threshold
+			window_start = i;
+		} else if (buf[i] < THRESHOLD && window_start != -1){
+			//signal has dropped below threshold
+			int window_size = i - window_start;
+
+			//RMS calculation on single window
+			float rmsSum = sqrtf((float)sum_of_squares(&buf[window_start], window_size) / window_size);
+			uint16_t scaledRMS = (uint16_t)(rmsSum * 100);
+
+			transmit_dma_to_usart(&scaledRMS, sizeof(uint16_t)); //transmit before next window
+
+			window_start = -1; //reset
+		}
+		}
+	}
 
 
 
+	for (int i = 0; i < LENGTH; i++) {
+		extract_ddr_words(command_sequence_MISO[FIRST_SAMPLED_CHANNEL + i + 2],
+				&samples[i],
+				&samples[i + LENGTH]);
+
+				channelBuffer[i] = samples[i];
+				channelBuffer[i+LENGTH] = samples[i + LENGTH];
+	}
+
+	process_buffer(channelBuffer, LENGTH * 2);
 
 
 
-	transmit_dma_to_usart(&scaledRms, NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t)); //usesg address of buffer
-	//transmit_dma_to_usart(samples_2 , NUM_SAMPLED_CHANNELS * 2 * sizeof(uint16_t));
 #endif
 }
 
