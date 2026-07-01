@@ -5,10 +5,10 @@
 ../Core/Src/userfunctions.c:281:6:send_rms_as_necessary	40	static
 ../Core/Src/userfunctions.c:377:6:sum_of_squares	32	static
 ../Core/Src/userfunctions.c:351:6:transmit_data_realtime	144	static
-../Core/Src/userfunctions.c:390:7:process_buffer	56	static
-../Core/Src/userfunctions.c:434:6:transmit_data_offline	32	static
-../Core/Src/userfunctions.c:483:6:configure_registers	16	static
-../Core/Src/userfunctions.c:506:6:configure_convert_commands	8	static
-../Core/Src/userfunctions.c:524:6:configure_aux_commands	16	static
-../Core/Src/userfunctions.c:559:6:transmit_dma_to_usart	16	static
-../Core/Src/userfunctions.c:599:6:transmit_dma_to_spi	24	static
+../Core/Src/userfunctions.c:385:7:process_buffer	56	static
+../Core/Src/userfunctions.c:427:6:transmit_data_offline	32	static
+../Core/Src/userfunctions.c:476:6:configure_registers	16	static
+../Core/Src/userfunctions.c:499:6:configure_convert_commands	8	static
+../Core/Src/userfunctions.c:517:6:configure_aux_commands	16	static
+../Core/Src/userfunctions.c:552:6:transmit_dma_to_usart	16	static
+../Core/Src/userfunctions.c:592:6:transmit_dma_to_spi	24	static

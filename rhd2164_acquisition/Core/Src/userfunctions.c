@@ -415,7 +415,7 @@ void transmit_data_realtime()
 				channelBuffer[i+LENGTH] = samples[i + LENGTH];
 	}
 
-	process_buffer(channelBuffer, LENGTH * 2);
+	process_buffer(channelBuffer, LENGTH);
 
 
 
